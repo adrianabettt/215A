@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JOGO DAS MÁQUINAS</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --az:#1565C0;--az2:#1E88E5;--az-c:#E3F2FD;
+  --vd:#2E7D32;--vd-c:#E8F5E9;
+  --am:#F57F17;--am-c:#FFF8E1;
+  --vm:#C62828;--vm-c:#FFEBEE;
+  --roxo:#6A1B9A;--roxo-c:#F3E5F5;
+  --bg:#F0F4FF;
+  --card:#fff;
+  --txt:#1A1A2E;--txt2:#5C6BC0;
+  --raio:22px;--raio2:14px;
+  --sh:0 6px 28px rgba(21,101,192,.15);
+}
+body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden}
+
+/* ── TELAS ─────────────────────────── */
+.tela{display:none;min-height:100vh;padding:24px 16px 40px;animation:fadeSlide .4s ease}
+.tela.ativa{display:block}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+.inner{max-width:820px;margin:0 auto}
+
+/* ── CABEÇALHO DE TELA ─────────────── */
+.tela-header{
+  background:var(--card);border-radius:var(--raio);padding:24px 28px;
+  margin-bottom:24px;box-shadow:var(--sh);
+  border-top:6px solid var(--az2);
+  display:flex;align-items:center;gap:18px;flex-wrap:wrap
+}
+.tela-header .num{
+  width:56px;height:56px;border-radius:50%;
+  background:var(--az2);color:#fff;
+  font-family:'Fredoka One',cursive;font-size:26px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0
+}
+.tela-header h1{font-family:'Fredoka One',cursive;font-size:clamp(22px,4vw,32px);color:var(--txt);line-height:1.1}
+.tela-header p{font-size:15px;color:var(--txt2);font-weight:700;margin-top:4px}
+
+/* PROGRESSO */
+.prog-bar{height:10px;background:#D9E4FF;border-radius:100px;margin-bottom:22px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--az2),#7C4DFF);border-radius:100px;transition:width .4s}
+
+/* ── DRAG FASE 1 ──────────────────── */
+.fonte-label{font-family:'Fredoka One',cursive;font-size:16px;color:var(--txt2);
+  letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase}
+
+.peca-container{
+  background:var(--card);border-radius:var(--raio);padding:20px;
+  box-shadow:var(--sh);margin-bottom:20px;
+  display:flex;flex-wrap:wrap;gap:10px;min-height:60px
+}
+.peca{
+  background:#EEF2FF;border:2.5px solid #C5CAE9;border-radius:12px;
+  padding:10px 16px;font-size:16px;font-weight:800;color:var(--txt);
+  cursor:grab;transition:all .2s;user-select:none;display:flex;align-items:center;gap:8px
+}
+.peca:hover{background:var(--az-c);border-color:var(--az2);transform:scale(1.04)}
+.peca.arrastando{opacity:.35}
+.peca.correta{background:var(--vd-c);border-color:var(--vd);color:var(--vd);cursor:default}
+.peca.errada{background:var(--vm-c);border-color:var(--vm);color:var(--vm);cursor:default;animation:shake .3s}
+
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+.zonas-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+@media(max-width:560px){.zonas-grid{grid-template-columns:1fr}}
+
+.zona{
+  border-radius:var(--raio);padding:16px 14px;min-height:100px;
+  border:2.5px dashed #CCC;transition:all .2s;
+}
+.zona.sobre{transform:scale(1.02);box-shadow:0 0 0 3px var(--az2)}
+.zona.manual{border-color:var(--vd);background:linear-gradient(135deg,#F1F8E9,#E8F5E9)}
+.zona.eletrica{border-color:var(--am);background:linear-gradient(135deg,#FFFDE7,#FFF8E1)}
+.zona.digital{border-color:var(--az2);background:linear-gradient(135deg,#E8F4FF,var(--az-c))}
+.zona h3{font-family:'Fredoka One',cursive;font-size:17px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.zona.manual h3{color:var(--vd)}
+.zona.eletrica h3{color:var(--am)}
+.zona.digital h3{color:var(--az)}
+.zona .pecas-soltas{display:flex;flex-wrap:wrap;gap:8px;min-height:36px}
+.placeholder-txt{font-size:13px;color:#AAA;font-style:italic;font-weight:700}
+
+.btn-verificar1{
+  display:flex;align-items:center;gap:10px;
+  background:var(--az2);color:#fff;border:none;border-radius:14px;
+  padding:14px 32px;font-family:'Nunito',sans-serif;font-size:17px;font-weight:900;
+  cursor:pointer;transition:all .2s;margin:0 auto
+}
+.btn-verificar1:hover{background:var(--az);transform:translateY(-2px);box-shadow:0 6px 20px rgba(21,101,192,.35)}
+
+.resultado-box{
+  border-radius:var(--raio);padding:20px 24px;margin-top:18px;
+  font-size:17px;font-weight:800;text-align:center;display:none;animation:fadeSlide .3s
+}
+.resultado-box.ok{background:var(--vd-c);color:var(--vd);border:2px solid var(--vd)}
+.resultado-box.nok{background:var(--vm-c);color:var(--vm);border:2px solid var(--vm)}
+
+/* ── FASE 2: DIGITAR NOME ─────────── */
+.itens-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-bottom:22px}
+@media(max-width:560px){.itens-grid{grid-template-columns:1fr}}
+
+.item-card{
+  background:var(--card);border-radius:var(--raio);padding:18px;
+  box-shadow:var(--sh);border:2.5px solid transparent;transition:all .2s
+}
+.item-card.acertou{border-color:var(--vd);background:var(--vd-c)}
+.item-card.errou{border-color:var(--vm);background:var(--vm-c)}
+
+.img-slot{
+  width:100%;height:150px;border-radius:var(--raio2);
+  background:#EEF2FF;border:2.5px dashed #C5CAE9;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  margin-bottom:12px;overflow:hidden
+}
+.img-slot img{width:100%;height:100%;object-fit:cover}
+.img-slot .sem-imagem{
+  font-size:13px;color:#9FA8DA;font-weight:800;text-align:center;
+  padding:0 12px;line-height:1.5;text-transform:uppercase
+}
+
+.item-numero{
+  font-size:11px;font-weight:900;color:var(--txt2);
+  text-transform:uppercase;letter-spacing:1px;margin-bottom:6px
+}
+.campo-nome{
+  width:100%;border:2.5px solid #C5CAE9;border-radius:10px;
+  padding:10px 12px;font-family:'Nunito',sans-serif;
+  font-size:16px;font-weight:800;color:var(--txt);
+  transition:border-color .2s;text-transform:uppercase
+}
+.campo-nome:focus{outline:none;border-color:var(--az2)}
+.campo-nome.ok{border-color:var(--vd);background:var(--vd-c);color:var(--vd)}
+.campo-nome.nok{border-color:var(--vm);background:var(--vm-c);color:var(--vm)}
+.resposta-certa{
+  font-size:13px;font-weight:800;color:var(--vm);margin-top:6px;display:none
+}
+
+.btn-verificar2{
+  display:flex;align-items:center;gap:10px;
+  background:#7C4DFF;color:#fff;border:none;border-radius:14px;
+  padding:14px 32px;font-family:'Nunito',sans-serif;font-size:17px;font-weight:900;
+  cursor:pointer;transition:all .2s;margin:0 auto
+}
+.btn-verificar2:hover{background:#6200EE;transform:translateY(-2px);box-shadow:0 6px 20px rgba(124,77,255,.35)}
+
+/* ── TELA RESULTADO FINAL ──────────── */
+.nota-circulo{
+  width:160px;height:160px;border-radius:50%;margin:0 auto 20px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:'Fredoka One',cursive;
+  box-shadow:0 8px 32px rgba(0,0,0,.2)
+}
+.nota-circulo .num-nota{font-size:64px;line-height:1;color:#fff}
+.nota-circulo .label-nota{font-size:16px;color:rgba(255,255,255,.85)}
+.nota-10{background:linear-gradient(135deg,#2E7D32,#66BB6A)}
+.nota-8{background:linear-gradient(135deg,#1565C0,#42A5F5)}
+.nota-6{background:linear-gradient(135deg,#E65100,#FFA726)}
+.nota-baixo{background:linear-gradient(135deg,#B71C1C,#EF5350)}
+
+.detalhe-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}
+@media(max-width:500px){.detalhe-grid{grid-template-columns:1fr}}
+.detalhe-card{
+  border-radius:var(--raio2);padding:16px;text-align:center;
+  font-family:'Fredoka One',cursive
+}
+.detalhe-card .dc-num{font-size:36px}
+.detalhe-card .dc-label{font-size:13px;font-weight:800;margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+.dc-f1{background:var(--vd-c);color:var(--vd)}
+.dc-f2{background:var(--az-c);color:var(--az)}
+
+.msg-final{
+  background:var(--card);border-radius:var(--raio);padding:22px;
+  text-align:center;box-shadow:var(--sh);margin-bottom:20px
+}
+.msg-final .emoji-grande{font-size:56px;display:block;margin-bottom:10px}
+.msg-final h2{font-family:'Fredoka One',cursive;font-size:28px;color:var(--txt);margin-bottom:8px}
+.msg-final p{font-size:16px;color:var(--txt2);font-weight:700;line-height:1.6}
+
+.btn-reiniciar{
+  display:flex;align-items:center;gap:10px;
+  background:var(--am);color:#fff;border:none;border-radius:14px;
+  padding:14px 32px;font-family:'Nunito',sans-serif;font-size:17px;font-weight:900;
+  cursor:pointer;transition:all .2s;margin:0 auto
+}
+.btn-reiniciar:hover{background:#E65100;transform:translateY(-2px)}
+
+/* botão próxima tela */
+.btn-proximo{
+  display:flex;align-items:center;gap:10px;
+  background:var(--vd);color:#fff;border:none;border-radius:14px;
+  padding:14px 32px;font-family:'Nunito',sans-serif;font-size:17px;font-weight:900;
+  cursor:pointer;transition:all .2s;margin:20px auto 0
+}
+.btn-proximo:hover{background:var(--vd2,#1B5E20);transform:translateY(-2px);box-shadow:0 6px 20px rgba(46,125,50,.35)}
+
+/* mini placar no topo */
+.mini-placar{
+  display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-end;margin-bottom:16px
+}
+.mini-chip{
+  background:var(--card);border-radius:100px;padding:6px 16px;
+  font-size:14px;font-weight:900;color:var(--txt2);box-shadow:0 2px 8px rgba(0,0,0,.1)
+}
+.mini-chip span{color:var(--az2);font-family:'Fredoka One',cursive;font-size:18px}
+
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TELA 0 — APRESENTAÇÃO
+═══════════════════════════════════════════════════════════ -->
+<div class="tela ativa" id="tela0">
+<div class="inner">
+  <div style="text-align:center;padding:60px 20px 40px">
+    <div style="font-size:72px;margin-bottom:16px">🤖</div>
+    <h1 style="font-family:'Fredoka One',cursive;font-size:clamp(32px,7vw,56px);color:var(--txt);line-height:1.1;margin-bottom:12px">JOGO DAS MÁQUINAS</h1>
+   
+    <p style="font-size:15px;color:#9FA8DA;font-weight:700;margin-bottom:40px">COMPLETE AS 2 FASES!</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:520px;margin:0 auto 40px">
+      <div style="background:var(--card);border-radius:var(--raio);padding:22px;box-shadow:var(--sh);border-top:5px solid var(--az2)">
+        <div style="font-size:36px;margin-bottom:8px">🎮</div>
+        <div style="font-family:'Fredoka One',cursive;font-size:18px;color:var(--txt)">FASE 1</div>
+        <div style="font-size:13px;color:var(--txt2);font-weight:800;margin-top:4px">ARRASTE AS MÁQUINAS PARA O GRUPO CERTO</div>
+      </div>
+      <div style="background:var(--card);border-radius:var(--raio);padding:22px;box-shadow:var(--sh);border-top:5px solid #7C4DFF">
+        <div style="font-size:36px;margin-bottom:8px">✏️</div>
+        <div style="font-family:'Fredoka One',cursive;font-size:18px;color:var(--txt)">FASE 2</div>
+        <div style="font-size:13px;color:var(--txt2);font-weight:800;margin-top:4px">ESCREVA O NOME CORRETO DE CADA MÁQUINA</div>
+      </div>
+    </div>
+
+    <button onclick="irPara('tela1')" style="background:var(--az2);color:#fff;border:none;border-radius:16px;padding:18px 48px;font-family:'Nunito',sans-serif;font-size:20px;font-weight:900;cursor:pointer;transition:all .2s;box-shadow:0 6px 24px rgba(30,136,229,.4)">
+      🚀 COMEÇAR!
+    </button>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TELA 1 — FASE 1: ARRASTAR E SOLTAR
+═══════════════════════════════════════════════════════════ -->
+<div class="tela" id="tela1">
+<div class="inner">
+
+  <div class="mini-placar">
+    <div class="mini-chip">FASE <span>1</span> DE 2</div>
+    <div class="mini-chip">PONTOS FASE 1: <span id="pts-f1">—</span></div>
+  </div>
+
+  <div class="tela-header">
+    <div class="num">1</div>
+    <div>
+      <h1>ARRASTE CADA MÁQUINA PARA O GRUPO CERTO!</h1>
+      <p>PEGUE CADA CARTÃO E SOLTE NA CAIXA: MANUAL, ELÉTRICA OU DIGITAL</p>
+    </div>
+  </div>
+
+  <div class="prog-bar"><div class="prog-fill" style="width:33%"></div></div>
+
+  <p class="fonte-label">📦 MÁQUINAS PARA ORGANIZAR</p>
+  <div class="peca-container" id="pecas-fonte"></div>
+
+  <div class="zonas-grid">
+    <div class="zona manual" id="zona-manual" ondrop="onDrop(event,'manual')" ondragover="onDragOver(event)">
+      <h3>🚲 MANUAIS</h3>
+      <div class="pecas-soltas"><span class="placeholder-txt">SOLTE AQUI...</span></div>
+    </div>
+    <div class="zona eletrica" id="zona-eletrica" ondrop="onDrop(event,'eletrica')" ondragover="onDragOver(event)">
+      <h3>🔌 ELÉTRICAS</h3>
+      <div class="pecas-soltas"><span class="placeholder-txt">SOLTE AQUI...</span></div>
+    </div>
+    <div class="zona digital" id="zona-digital" ondrop="onDrop(event,'digital')" ondragover="onDragOver(event)">
+      <h3>💻 DIGITAIS</h3>
+      <div class="pecas-soltas"><span class="placeholder-txt">SOLTE AQUI...</span></div>
+    </div>
+  </div>
+
+  <button class="btn-verificar1" id="btn-v1" onclick="verificarFase1()">✅ VERIFICAR RESPOSTAS</button>
+  <div class="resultado-box" id="resultado1"></div>
+  <button class="btn-proximo" id="btn-prox1" style="display:none" onclick="irPara('tela2')">IR PARA A FASE 2 →</button>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TELA 2 — FASE 2: DIGITAR NOME
+═══════════════════════════════════════════════════════════ -->
+<div class="tela" id="tela2">
+<div class="inner">
+
+  <div class="mini-placar">
+    <div class="mini-chip">FASE <span>2</span> DE 2</div>
+    <div class="mini-chip">PONTOS FASE 1: <span id="pts-f1b">—</span></div>
+    <div class="mini-chip">FASE 2: <span id="pts-f2">—</span></div>
+  </div>
+
+  <div class="tela-header">
+    <div class="num" style="background:#7C4DFF">2</div>
+    <div>
+      <h1>ESCREVA O NOME CORRETO DE CADA MÁQUINA!</h1>
+      <p>OBSERVE CADA IMAGEM E DIGITE O NOME DA MÁQUINA NO CAMPO ABAIXO</p>
+    </div>
+  </div>
+
+  <div class="prog-bar"><div class="prog-fill" style="width:66%"></div></div>
+
+  <div class="itens-grid" id="itens-grid"></div>
+
+  <button class="btn-verificar2" id="btn-v2" onclick="verificarFase2()">✅ VERIFICAR RESPOSTAS</button>
+  <div class="resultado-box" id="resultado2"></div>
+  <button class="btn-proximo" id="btn-prox2" style="display:none;background:#7C4DFF" onclick="irPara('tela3')">VER RESULTADO FINAL →</button>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TELA 3 — RESULTADO FINAL
+═══════════════════════════════════════════════════════════ -->
+<div class="tela" id="tela3">
+<div class="inner" style="padding-top:20px">
+
+  <div class="tela-header" style="justify-content:center;text-align:center">
+    <div>
+      <h1>🏆 RESULTADO FINAL</h1>
+      <p>VEJA COMO VOCÊ SE SAIU NAS DUAS FASES!</p>
+    </div>
+  </div>
+
+  <div class="prog-bar"><div class="prog-fill" style="width:100%"></div></div>
+
+  <div class="msg-final">
+    <span class="emoji-grande" id="emoji-final">🎉</span>
+    <h2 id="titulo-final">PARABÉNS!</h2>
+    <p id="msg-final-texto">VOCÊ COMPLETOU O JOGO!</p>
+  </div>
+
+  <div style="display:flex;justify-content:center;margin-bottom:24px">
+    <div class="nota-circulo nota-10" id="circulo-nota">
+      <span class="num-nota" id="nota-display">10</span>
+      <span class="label-nota">DE 10</span>
+    </div>
+  </div>
+
+  <div class="detalhe-grid">
+    <div class="detalhe-card dc-f1">
+      <div class="dc-num" id="res-f1">—</div>
+      <div class="dc-label">🎮 FASE 1<br>ARRASTAR</div>
+    </div>
+    <div class="detalhe-card dc-f2">
+      <div class="dc-num" id="res-f2">—</div>
+      <div class="dc-label">✏️ FASE 2<br>DIGITAR</div>
+    </div>
+  </div>
+
+  <button class="btn-reiniciar" onclick="reiniciar()">🔄 JOGAR NOVAMENTE</button>
+</div>
+</div>
+
+
+<script>
+// ═══════════════════════════════════════════════
+//  DADOS
+// ═══════════════════════════════════════════════
+
+const PECAS_F1 = [
+  {nome:'✂️ TESOURA',   tipo:'manual'},
+  {nome:'🔌 SECADOR',   tipo:'eletrica'},
+  {nome:'📱 CELULAR',   tipo:'digital'},
+  {nome:'🚲 BICICLETA', tipo:'manual'},
+  {nome:'𖣘 VENTILADOR',tipo:'eletrica'},
+  {nome:'💻 COMPUTADOR',tipo:'digital'},
+  {nome:'🔨️ MARTELO',   tipo:'manual'},
+  {nome:'📻 RÁDIO',tipo:'eletrica'},
+  {nome:'⌚ SMARTWATCH', tipo:'digital'},
+  {nome:'🪣 BOMBA MANUAL',tipo:'manual'},
+];
+
+// ═══════════════════════════════════════════════
+//  DADOS — FASE 2
+//  Para adicionar imagens, cole a URL no campo "img" de cada item.
+//  Exemplo:  img:'https://upload.wikimedia.org/wikipedia/.../Blender.jpg'
+//  Deixe img:'' para exibir o texto "IMAGEM NÃO CADASTRADA".
+// ═══════════════════════════════════════════════
+const ITENS_F2 = [
+  {id:1,  gabarito:'LIQUIDIFICADOR', img:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS3rAcLOByW2W5zL18STpr42NO8Hjyr0Q-Zhw&s'},  // ← COLE A URL DA IMAGEM AQUI
+  {id:2,  gabarito:'COMPUTADOR',     img:'https://img.freepik.com/vetores-gratis/ilustracao-de-computador-icone_53876-5559.jpg?semt=ais_hybrid&w=740&q=80'},  // ← COLE A URL DA IMAGEM AQUI
+  {id:3,  gabarito:'CELULAR',        img:'https://static.vecteezy.com/ti/vetor-gratis/t2/6795445-smartphone-icone-celular-telefone-movel-sinal-simbolo-vetor.jpg'},  // ← COLE A URL DA IMAGEM AQUI
+  {id:4,  gabarito:'SEMAFORO',       img:'https://img.magnific.com/vetores-premium/semaforo-de-transito_625536-3989.jpg?semt=ais_hybrid&w=740&q=80'},  // ← COLE A URL DA IMAGEM AQUI
+  {id:5,  gabarito:'GELADEIRA',      img:'https://img.freepik.com/vetores-premium/arte-vetorial-de-clipart-de-geladeira-e-ilustracao_761413-26656.jpg?semt=ais_hybrid&w=740&q=80'},  // ← COLE A URL DA IMAGEM AQUI
+  {id:6,  gabarito:'VENTILADOR',     img:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQupaQvhxfrfiukwXxt6Zk7V83wq9Y7TMsB2g&s'},  // ← COLE A URL DA IMAGEM AQUI
+  {id:7,  gabarito:'BICICLETA',      img:'https://static.vecteezy.com/ti/vetor-gratis/p1/516693-bicicleta-de-montanha-com-engrenagem-mudando-a-ilustracaoial-de-silhueta-preta-vetor.jpg'},  // ← COLE A URL DA IMAGEM AQUI
+  {id:8,  gabarito:'TESOURA',        img:'https://static.vecteezy.com/ti/vetor-gratis/p1/355029-icone-de-de-tesoura-gratis-vetor.jpg'},  // ← COLE A URL DA IMAGEM AQUI
+  {id:9,  gabarito:'MICRO-ONDAS',    img:''},  // ← COLE A URL DA IMAGEM AQUI
+  {id:10, gabarito:'CALCULADORA',    img:'https://static.vecteezy.com/ti/vetor-gratis/p1/18781684-conceitos-de-calculadora-da-moda-vetor.jpg'},  // ← COLE A URL DA IMAGEM AQUI
+];
+
+// ═══════════════════════════════════════════════
+//  ESTADO
+// ═══════════════════════════════════════════════
+let pontosFase1 = 0, pontosFase2 = 0;
+let fase1Verificada = false, fase2Verificada = false;
+let dragAtual = null;
+
+// ═══════════════════════════════════════════════
+//  NAVEGAÇÃO
+// ═══════════════════════════════════════════════
+function irPara(id){
+  document.querySelectorAll('.tela').forEach(t=>t.classList.remove('ativa'));
+  document.getElementById(id).classList.add('ativa');
+  window.scrollTo(0,0);
+  if(id==='tela1') iniciarFase1();
+  if(id==='tela2') iniciarFase2();
+  if(id==='tela3') mostrarResultado();
+}
+
+// ═══════════════════════════════════════════════
+//  FASE 1
+// ═══════════════════════════════════════════════
+function iniciarFase1(){
+  if(fase1Verificada) return;
+  const fonte = document.getElementById('pecas-fonte');
+  fonte.innerHTML='';
+  // embaralhar
+  const lista = [...PECAS_F1].sort(()=>Math.random()-.5);
+  lista.forEach(p=>{
+    const el = document.createElement('div');
+    el.className='peca';
+    el.draggable=true;
+    el.dataset.tipo=p.tipo;
+    el.textContent=p.nome;
+    el.addEventListener('dragstart',e=>{
+      dragAtual=el;
+      el.classList.add('arrastando');
+      e.dataTransfer.setData('text',p.tipo+'|'+p.nome);
+    });
+    el.addEventListener('dragend',()=>el.classList.remove('arrastando'));
+    // toque mobile
+    el.addEventListener('touchstart',touchStart,{passive:true});
+    el.addEventListener('touchmove',touchMove,{passive:false});
+    el.addEventListener('touchend',touchEnd);
+    fonte.appendChild(el);
+  });
+  // limpar zonas
+  ['manual','eletrica','digital'].forEach(z=>{
+    const ps = document.querySelector(`#zona-${z} .pecas-soltas`);
+    ps.innerHTML='<span class="placeholder-txt">SOLTE AQUI...</span>';
+  });
+  document.getElementById('resultado1').style.display='none';
+  document.getElementById('btn-prox1').style.display='none';
+  document.getElementById('btn-v1').style.display='flex';
+}
+
+function onDragOver(e){
+  e.preventDefault();
+  e.currentTarget.classList.add('sobre');
+}
+document.querySelectorAll('.zona').forEach(z=>{
+  z.addEventListener('dragleave',()=>z.classList.remove('sobre'));
+});
+
+function onDrop(e,zonaId){
+  e.preventDefault();
+  const zona = document.getElementById('zona-'+zonaId);
+  zona.classList.remove('sobre');
+  if(!dragAtual) return;
+  const ps = zona.querySelector('.pecas-soltas');
+  const ph = ps.querySelector('.placeholder-txt');
+  if(ph) ph.remove();
+  const clone = dragAtual.cloneNode(true);
+  clone.draggable=false;
+  clone.style.cursor='default';
+  clone.style.fontSize='14px';
+  clone.style.padding='7px 12px';
+  clone.removeEventListener('dragstart',()=>{});
+  ps.appendChild(clone);
+  dragAtual.remove();
+  dragAtual=null;
+}
+
+function verificarFase1(){
+  if(fase1Verificada) return;
+  let acertos=0, total=0;
+  ['manual','eletrica','digital'].forEach(tipo=>{
+    const ps = document.querySelectorAll(`#zona-${tipo} .pecas-soltas .peca`);
+    ps.forEach(p=>{
+      total++;
+      if(p.dataset.tipo===tipo){p.classList.add('correta');acertos++;}
+      else p.classList.add('errada');
+    });
+  });
+  pontosFase1=acertos;
+  document.getElementById('pts-f1').textContent=acertos+'/'+PECAS_F1.length;
+  document.getElementById('pts-f1b').textContent=acertos+'/'+PECAS_F1.length;
+  const r=document.getElementById('resultado1');
+  r.style.display='block';
+  if(acertos===PECAS_F1.length){
+    r.className='resultado-box ok';
+    r.innerHTML='🎉 PERFEITO! VOCÊ ACERTOU TODAS AS '+acertos+' MÁQUINAS!';
+  } else {
+    r.className='resultado-box nok';
+    r.innerHTML='👍 VOCÊ ACERTOU '+acertos+' DE '+PECAS_F1.length+'! AS MÁQUINAS VERMELHAS ESTÃO NO GRUPO ERRADO.';
+  }
+  fase1Verificada=true;
+  document.getElementById('btn-v1').style.display='none';
+  document.getElementById('btn-prox1').style.display='flex';
+}
+
+// ═══════════════════════════════════════════════
+//  FASE 2
+// ═══════════════════════════════════════════════
+function iniciarFase2(){
+  if(fase2Verificada) return;
+  const grid = document.getElementById('itens-grid');
+  grid.innerHTML='';
+  ITENS_F2.forEach(item=>{
+    const imgConteudo = item.img
+      ? `<img src="${item.img}" alt="Máquina ${item.id}">`
+      : `<span class="sem-imagem">📷 IMAGEM NÃO<br>CADASTRADA</span>`;
+    const card = document.createElement('div');
+    card.className='item-card';
+    card.id='card-'+item.id;
+    card.innerHTML=`
+      <div class="img-slot">${imgConteudo}</div>
+      <div class="item-numero">MÁQUINA ${item.id} DE ${ITENS_F2.length}</div>
+      <input class="campo-nome" id="campo-${item.id}" type="text"
+        placeholder="DIGITE O NOME AQUI..."
+        maxlength="30"
+        oninput="this.value=this.value.toUpperCase()">
+      <div class="resposta-certa" id="rc-${item.id}">✅ RESPOSTA CORRETA: ${item.gabarito}</div>
+    `;
+    grid.appendChild(card);
+  });
+  document.getElementById('resultado2').style.display='none';
+  document.getElementById('btn-prox2').style.display='none';
+  document.getElementById('btn-v2').style.display='flex';
+}
+
+function verificarFase2(){
+  if(fase2Verificada) return;
+  let acertos=0;
+  ITENS_F2.forEach(item=>{
+    const campo = document.getElementById('campo-'+item.id);
+    const card  = document.getElementById('card-'+item.id);
+    const rc    = document.getElementById('rc-'+item.id);
+    const val   = campo.value.trim().toUpperCase()
+                    .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const gab   = item.gabarito.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    campo.disabled=true;
+    if(val===gab){
+      campo.classList.add('ok');
+      card.classList.add('acertou');
+      acertos++;
+    } else {
+      campo.classList.add('nok');
+      card.classList.add('errou');
+      rc.style.display='block';
+    }
+  });
+  pontosFase2=acertos;
+  document.getElementById('pts-f2').textContent=acertos+'/'+ITENS_F2.length;
+  const r=document.getElementById('resultado2');
+  r.style.display='block';
+  if(acertos===ITENS_F2.length){
+    r.className='resultado-box ok';
+    r.innerHTML='🌟 INCRÍVEL! VOCÊ ACERTOU TODOS OS '+acertos+' NOMES!';
+  } else {
+    r.className='resultado-box nok';
+    r.innerHTML='👍 VOCÊ ACERTOU '+acertos+' DE '+ITENS_F2.length+' NOMES. OS INCORRETOS ESTÃO EM VERMELHO!';
+  }
+  fase2Verificada=true;
+  document.getElementById('btn-v2').style.display='none';
+  document.getElementById('btn-prox2').style.display='flex';
+}
+
+// ═══════════════════════════════════════════════
+//  RESULTADO FINAL
+// ═══════════════════════════════════════════════
+function mostrarResultado(){
+  const total = PECAS_F1.length + ITENS_F2.length; // 20
+  const soma  = pontosFase1 + pontosFase2;
+  const nota  = Math.round((soma/total)*10*10)/10; // 0-10 com 1 decimal
+
+  document.getElementById('nota-display').textContent = nota % 1 === 0 ? nota : nota.toFixed(1);
+  document.getElementById('res-f1').textContent = pontosFase1+'/'+PECAS_F1.length;
+  document.getElementById('res-f2').textContent = pontosFase2+'/'+ITENS_F2.length;
+
+  const circ = document.getElementById('circulo-nota');
+  circ.className='nota-circulo';
+  let emoji='', titulo='', msg='';
+  if(nota>=9){
+    circ.classList.add('nota-10');
+    emoji='🏆';titulo='INCRÍVEL!';
+    msg='VOCÊ É UM EXPERT EM MÁQUINAS! CONTINUE ASSIM!';
+  } else if(nota>=7){
+    circ.classList.add('nota-8');
+    emoji='🎉';titulo='MUITO BOM!';
+    msg='VOCÊ SE SAIU MUITO BEM! REVISE OS ERROS E TENTE NOVAMENTE PARA MELHORAR AINDA MAIS!';
+  } else if(nota>=5){
+    circ.classList.add('nota-6');
+    emoji='👍';titulo='BOM TRABALHO!';
+    msg='VOCÊ ESTÁ NO CAMINHO CERTO! REVISE OS CONTEÚDOS E TENTE DE NOVO!';
+  } else {
+    circ.classList.add('nota-baixo');
+    emoji='💪';titulo='CONTINUE TENTANDO!';
+    msg='NÃO DESANIME! REVISE O QUE VOCÊ APRENDEU E TENTE DE NOVO — VOCÊ VAI MELHORAR!';
+  }
+  document.getElementById('emoji-final').textContent=emoji;
+  document.getElementById('titulo-final').textContent=titulo;
+  document.getElementById('msg-final-texto').textContent=msg;
+}
+
+// ═══════════════════════════════════════════════
+//  REINICIAR
+// ═══════════════════════════════════════════════
+function reiniciar(){
+  pontosFase1=pontosFase2=0;
+  fase1Verificada=fase2Verificada=false;
+  document.getElementById('pts-f1').textContent='—';
+  document.getElementById('pts-f1b').textContent='—';
+  document.getElementById('pts-f2').textContent='—';
+  irPara('tela0');
+}
+
+// ═══════════════════════════════════════════════
+//  TOUCH (MOBILE DRAG)
+// ═══════════════════════════════════════════════
+let touchEl=null, cloneTouch=null, offsetX=0, offsetY=0;
+
+function touchStart(e){
+  touchEl=e.currentTarget;
+  const r=touchEl.getBoundingClientRect();
+  const t=e.touches[0];
+  offsetX=t.clientX-r.left;
+  offsetY=t.clientY-r.top;
+  cloneTouch=touchEl.cloneNode(true);
+  cloneTouch.style.cssText=`position:fixed;pointer-events:none;z-index:9999;
+    opacity:.85;left:${t.clientX-offsetX}px;top:${t.clientY-offsetY}px;
+    width:${r.width}px;margin:0;`;
+  document.body.appendChild(cloneTouch);
+  touchEl.style.opacity='.3';
+}
+function touchMove(e){
+  e.preventDefault();
+  if(!cloneTouch) return;
+  const t=e.touches[0];
+  cloneTouch.style.left=(t.clientX-offsetX)+'px';
+  cloneTouch.style.top=(t.clientY-offsetY)+'px';
+}
+function touchEnd(e){
+  if(!cloneTouch||!touchEl) return;
+  const t=e.changedTouches[0];
+  cloneTouch.remove(); cloneTouch=null;
+  touchEl.style.opacity='1';
+  const el=document.elementFromPoint(t.clientX,t.clientY);
+  const zona=el?el.closest('.zona'):null;
+  if(zona){
+    const tipo=zona.id.replace('zona-','');
+    const ps=zona.querySelector('.pecas-soltas');
+    const ph=ps.querySelector('.placeholder-txt');
+    if(ph)ph.remove();
+    const cl=touchEl.cloneNode(true);
+    cl.draggable=false; cl.style.cursor='default';
+    cl.style.fontSize='14px'; cl.style.padding='7px 12px';
+    ps.appendChild(cl);
+    touchEl.remove();
+  }
+  touchEl=null;
+}
+</script>
+</body>
+</html>
