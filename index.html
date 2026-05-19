@@ -241,7 +241,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;overf
 <div class="inner">
   <div class="mini-placar">
     <div class="mini-chip">FASE <span>1</span> DE 2</div>
-    <div class="mini-chip">PONTOS FASE 1: <span id="pts-f1">—</span></div>
   </div>
   <div class="tela-header">
     <div class="num">1</div>
@@ -268,7 +267,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;overf
     </div>
   </div>
   <button class="btn-verificar1" id="btn-v1" onclick="verificarFase1()">✅ VERIFICAR RESPOSTAS</button>
-  <div class="resultado-box" id="resultado1"></div>
   <button class="btn-proximo" id="btn-prox1" style="display:none" onclick="irPara('tela2')">IR PARA A FASE 2 →</button>
 </div>
 </div>
@@ -278,8 +276,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;overf
 <div class="inner">
   <div class="mini-placar">
     <div class="mini-chip">FASE <span>2</span> DE 2</div>
-    <div class="mini-chip">PONTOS FASE 1: <span id="pts-f1b">—</span></div>
-    <div class="mini-chip">FASE 2: <span id="pts-f2">—</span></div>
   </div>
   <div class="tela-header">
     <div class="num" style="background:#7C4DFF">2</div>
@@ -291,7 +287,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;overf
   <div class="prog-bar"><div class="prog-fill" style="width:66%"></div></div>
   <div class="itens-grid" id="itens-grid"></div>
   <button class="btn-verificar2" id="btn-v2" onclick="verificarFase2()">✅ VERIFICAR RESPOSTAS</button>
-  <div class="resultado-box" id="resultado2"></div>
   <button class="btn-proximo" id="btn-prox2" style="display:none;background:#7C4DFF" onclick="irPara('tela3')">VER RESULTADO FINAL →</button>
 </div>
 </div>
@@ -440,17 +435,6 @@ function verificarFase1(){
     });
   });
   pontosFase1=acertos;
-  document.getElementById('pts-f1').textContent=acertos+'/'+PECAS_F1.length;
-  document.getElementById('pts-f1b').textContent=acertos+'/'+PECAS_F1.length;
-  const r=document.getElementById('resultado1');
-  r.style.display='block';
-  if(acertos===PECAS_F1.length){
-    r.className='resultado-box ok';
-    r.innerHTML='🎉 PERFEITO! VOCÊ ACERTOU TODAS AS '+acertos+' MÁQUINAS!';
-  } else {
-    r.className='resultado-box nok';
-    r.innerHTML='👍 VOCÊ ACERTOU '+acertos+' DE '+PECAS_F1.length+'! AS MÁQUINAS VERMELHAS ESTÃO NO GRUPO ERRADO.';
-  }
   fase1Verificada=true;
   document.getElementById('btn-v1').style.display='none';
   document.getElementById('btn-prox1').style.display='flex';
@@ -505,16 +489,6 @@ function verificarFase2(){
     }
   });
   pontosFase2=acertos;
-  document.getElementById('pts-f2').textContent=acertos+'/'+ITENS_F2.length;
-  const r=document.getElementById('resultado2');
-  r.style.display='block';
-  if(acertos===ITENS_F2.length){
-    r.className='resultado-box ok';
-    r.innerHTML='🌟 INCRÍVEL! VOCÊ ACERTOU TODOS OS '+acertos+' NOMES!';
-  } else {
-    r.className='resultado-box nok';
-    r.innerHTML='👍 VOCÊ ACERTOU '+acertos+' DE '+ITENS_F2.length+' NOMES. OS INCORRETOS ESTÃO EM VERMELHO!';
-  }
   fase2Verificada=true;
   document.getElementById('btn-v2').style.display='none';
   document.getElementById('btn-prox2').style.display='flex';
